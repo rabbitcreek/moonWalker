@@ -1,0 +1,189 @@
+#include <ESP32Servo.h>
+#include <FastLED.h>
+#include "RTClib.h"
+#define DATA_PIN2 D8
+#define DATA_PIN D9
+int year;
+int day;
+int month;
+int hour;
+int timeZone = 10;
+int moonNum = 0;
+
+RTC_DS3231 rtc;
+Servo myservo;
+int servoPin = D7;
+#define NUM_LEDS 8
+CRGB leds[NUM_LEDS];
+CRGB leds2[NUM_LEDS];
+void setup() {
+  Serial.begin();
+  ESP32PWM::allocateTimer(0);
+	ESP32PWM::allocateTimer(1);
+	ESP32PWM::allocateTimer(2);
+	ESP32PWM::allocateTimer(3);
+	myservo.setPeriodHertz(50);    // standard 50 hz servo
+	myservo.attach(servoPin, 500, 2500); // attaches the servo on pin 18 to the servo object
+  FastLED.addLeds<WS2812,DATA_PIN,GRB>(leds2,NUM_LEDS);
+  FastLED.addLeds<WS2812,DATA_PIN2,GRB>(leds,NUM_LEDS);
+	FastLED.setBrightness(50);
+ if(!rtc.begin()) {
+        Serial.println("Couldn't find RTC!");
+        //Serial.flush();
+        abort();
+    }
+    //rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));  //opened this will synch RTC with computer
+    //rtc.adjust(DateTime(2024, 3, 19, 19, 0, 0));
+    if(rtc.lostPower()) {
+        // this will adjust to the date and time at compilation
+        rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
+    }
+
+     
+    rtc.disable32K();
+    printTime();
+    DateTime now = rtc.now();
+    year = now.year();
+    day = now.day();
+    month = now.month();
+    hour = now.hour();
+   moonNum = moonPhases(year, month, day);
+    
+   Serial.print("Moon Number: ");
+   Serial.println(moonNum);
+    
+
+}
+  void loop(){
+  fill_solid(leds2, 8, CRGB(100,100,100) );
+	fill_solid(leds, 8, CRGB(100,100,100) );
+  FastLED.show();
+  delay(50);
+  /*
+  for (int pos = 0; pos <= 180; pos = pos + 1) { // goes from 0 degrees to 180 degrees
+		// in steps of 1 degree
+		myservo.write(pos);    // tell servo to go to position in variable 'pos'
+    //Serial.println(pos);
+		delay(500);             // waits 15ms for the servo to reach the position
+	}
+ //fill_solid(leds2, 6, CRGB(0,0,0) );
+	//fill_solid(leds, 6, CRGB(100,100,100) );
+  //FastLED.show();
+  //delay(50);
+  //fill_solid(leds, 8, CRGB(250,250,250) );
+	//fill_solid(leds, 6, CRGB(100,100,100) );
+  //FastLED.show();
+  //delay(50);
+ 
+ for (int pos = 0; pos <= 180; pos = pos + 1) { // goes from 0 degrees to 180 degrees
+		// in steps of 1 degree
+		myservo.write(pos);    // tell servo to go to position in variable 'pos'
+    //Serial.println(pos);
+		delay(500);             // waits 15ms for the servo to reach the position
+	}
+  //fill_solid(leds, 6, CRGB(0,0,0) );
+	//fill_solid(leds, 6, CRGB(100,100,100) );
+  //FastLED.show();
+  delay(50);
+  */
+	
+  }
+  void printTime(){//call this to print the current time on RTC
+     
+    DateTime now = rtc.now();
+    char date[] = "DD.MM.YYYY, ";
+    Serial.print(now.toString(date));
+    char time[] = "hh:mm:ss";
+    rtc.now().toString(time);
+    Serial.println(time);
+}
+int moonPhases(int year, int month, int day)
+{
+    double jd = julianDat(year, month, day);  // calculate Julian Date
+  
+    float dr = PI / 180.0;
+  
+    float rd = 1 / dr;
+  
+    unsigned long meeDT = pow(jd - 2382148, 2) / 41048480 / 86400;
+  
+    double meeT = (jd + meeDT - 2451545.0) / 36525;
+  
+    unsigned long meeT2 = pow(meeT, 2);
+  
+    unsigned long meeT3 = pow(meeT, 3);
+  
+    double meeD = 297.85 + (445267.1115 * meeT) - (0.0016300 * meeT2) + (meeT3 / 545868);
+  
+    meeD = proper_ang(meeD) * dr;
+  
+    double meeM1 = 134.96 + (477198.8676 * meeT) + (0.0089970 * meeT2) + (meeT3 / 69699);
+  
+    meeM1 = proper_ang(meeM1) * dr;
+  
+    double meeM = 357.53 + (35999.0503 * meeT);
+  
+    meeM = proper_ang(meeM) * dr;
+  
+    double elong = meeD * rd + 6.29 * sin(meeM1);
+  
+    elong = elong - 2.10 * sin(meeM);
+  
+    elong = elong + 1.27 * sin(2 * meeD - meeM1);
+  
+    elong = elong + 0.66 * sin(2 * meeD);
+  
+    elong = proper_ang(elong);
+  
+    elong = round(elong);
+  
+    delay(1000);
+  
+    double moonNum = ((elong + 6.43) / 360) * 28;
+  
+    moonNum = floor(moonNum);
+  
+    if (moonNum == 28)
+    {
+      moonNum = 0;
+    }
+  
+    return moonNum;
+}
+double proper_ang(double big)
+{
+    double tmp = 0;
+  
+    if (big > 0)
+    {
+      tmp = big / 360.0;
+      tmp = (tmp - floor(tmp)) * 360.0;
+    }
+    else
+    {
+      tmp = ceil(abs(big / 360.0));
+      tmp = big + tmp * 360.0;
+    }
+  
+    return tmp;
+}
+double julianDat(int year, int month, int day)
+{
+  double  zone = -(timeZone * 60 / 1440.0);
+
+  if (month <= 2)
+  {
+    year -= 1;
+    month += 12;
+  }
+  
+  double day2 = day + zone + 0.5;
+  double A = floor(year / 100.0);
+  double B = 2 - A + floor(A / 4.0);
+  double JD = floor(365.25 * (year + 4716)) + floor(30.6001 * (month + 1)) + day2 + B - 1524.5;
+
+  return JD;
+}
+
+
+
