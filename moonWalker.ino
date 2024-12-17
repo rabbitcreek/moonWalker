@@ -86,7 +86,10 @@ void setup() {
   //FastLED.show();
   delay(50);
   */
-	
+	printTime();
+  delay(5000);
+  Serial.println((char*)moonPhaseText(moonNum));
+
   }
   void printTime(){//call this to print the current time on RTC
      
@@ -184,6 +187,52 @@ double julianDat(int year, int month, int day)
 
   return JD;
 }
+char* moonPhaseText(int moonNum)
+ { 
+    char outputStr[50];
+    
+    char moonPhase[50] = " new Moon";
+    char tempStr[50] = " new Moon";
+
+   
+    if ((moonNum > 03) && (moonNum < 11)) sprintf(moonPhase,"%s", " First Quarter");  //moonPhase = " First Quarter";
+    if ((moonNum > 10) && (moonNum < 18)) sprintf(moonPhase,"%s", " Full Moon");      //moonPhase = " Full Moon";
+    if ((moonNum > 17) && (moonNum < 25)) sprintf(moonPhase,"%s", " Last Quarter");   //moonPhase = " Last Quarter";
+
+    if ((moonNum == 01) || (moonNum == 8) || (moonNum == 15) || (moonNum == 22))  
+    {
+      sprintf(outputStr,"1 day past %s", moonPhase);
+    }
+    
+    if ((moonNum == 02) || (moonNum == 9) || (moonNum == 16) || (moonNum == 23))
+    {
+      sprintf(outputStr,"2 days past %s", moonPhase);
+    }
+    
+    if ((moonNum == 03) || (moonNum == 10) || (moonNum == 17) || (moonNum == 24)) 
+    {
+      sprintf(outputStr,"3 days past %s", moonPhase);
+    }
+   
+    if ((moonNum == 04) || (moonNum == 11) || (moonNum == 18) || (moonNum == 25))
+    {
+      sprintf(outputStr,"3 days before %s", moonPhase);
+    }
+    
+    if ((moonNum == 05) || (moonNum == 12) || (moonNum == 19) || (moonNum == 26))
+    {
+      sprintf(outputStr,"2 days before %s", moonPhase);
+    }
+    
+    if ((moonNum == 06) || (moonNum == 13) || (moonNum == 20) || (moonNum == 27)) 
+    {
+      sprintf(outputStr,"1 day before %s", moonPhase);
+    }
+    
+   Serial.print(outputStr);
+    return outputStr;
+
+ }
 
 
 
