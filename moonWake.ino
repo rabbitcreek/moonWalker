@@ -12,6 +12,7 @@ int moonNum = 0;
 int range = 0;
 int fill = 0;
 int hourCorrect = 0;
+int arr[4][3] = {{255,255,0},{204,255,204},{204,255,255},{255,153,51}};
 RTC_DS3231 rtc;
 Servo myservo;
 int servoPin = D7;
@@ -215,6 +216,7 @@ char* moonPhaseText(int moonNum)
   fill = 1;
   } else {
     hourCorrect = now.hour() - 19;
+    
     if(moonNum < 16){
        range = map( moonNum,1,15,0,180);
       fill = 2;
@@ -227,6 +229,8 @@ char* moonPhaseText(int moonNum)
   	myservo.write(range);    // tell servo to go to position in variable 'pos'
     Serial.print("Range");
     Serial.println(range);
+    Serial.print("hourcorrect: ");
+    Serial.println(hourCorrect);
 		delay(500);
  switch (fill) {
 
@@ -238,14 +242,14 @@ char* moonPhaseText(int moonNum)
 
     case 2:
     Serial.print("LeftLightsLED2s");
-      fill_solid(leds2, 8, CRGB(100,100,100 - (4 * hourCorrect)) );
+      fill_solid(leds2, 8, CRGB(arr[hourCorrect][0],arr[hourCorrect][1], arr[hourCorrect][2]) );
 	    fill_solid(leds, 8, CRGB(0,0,0));
       break;
       
     case 3:
       Serial.print("RightLightsLEDs");
       fill_solid(leds2, 8, CRGB(0,0,0) );
-	    fill_solid(leds, 8, CRGB(100,100,100 - (4 * hourCorrect)) );
+	    fill_solid(leds, 8,CRGB(arr[hourCorrect][0],arr[hourCorrect][1], arr[hourCorrect][2])  );
       break;
 
 
