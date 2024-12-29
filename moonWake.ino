@@ -4,7 +4,7 @@
 #define DATA_PIN2 D8
 #define DATA_PIN D9
 #define uS_TO_S_FACTOR 1000000ULL  /* Conversion factor for micro seconds to seconds */
-#define TIME_TO_SLEEP  60        /* Time ESP32 will go to sleep (in seconds) */
+#define TIME_TO_SLEEP  60 * 15       /* Time ESP32 will go to sleep (in seconds) */
 
 RTC_DATA_ATTR int bootCount = 0;
 
@@ -261,14 +261,14 @@ char* moonPhaseText(int moonNum)
 
     case 2:
     Serial.print("LeftLightsLED2s");
-      fill_solid(leds2, 8, CRGB(arr[hourCorrect][0],arr[hourCorrect][1], arr[hourCorrect][2]) );
+      fill_solid(leds2, 8, CRGB(100,100,100 ));
 	    fill_solid(leds, 8, CRGB(0,0,0));
       break;
       
     case 3:
       Serial.print("RightLightsLEDs");
       fill_solid(leds2, 8, CRGB(0,0,0) );
-	    fill_solid(leds, 8,CRGB(arr[hourCorrect][0],arr[hourCorrect][1], arr[hourCorrect][2])  );
+	    fill_solid(leds, 8,CRGB(250,250,0  ));
       break;
 
 
